@@ -7,6 +7,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Locale;
 
 import javax.servlet.http.HttpServletRequest;
@@ -33,10 +34,12 @@ import com.jeecms.cms.ueditor.define.AppInfo;
 import com.jeecms.cms.ueditor.define.BaseState;
 import com.jeecms.cms.ueditor.define.MultiState;
 import com.jeecms.cms.ueditor.PathFormat;
+import com.jeecms.cms.manager.assist.CmsResourceMng;
 import com.jeecms.cms.service.ImageSvc;
 import com.jeecms.cms.ueditor.define.State;
 import com.jeecms.cms.ueditor.hunter.ImageHunter;
 import com.jeecms.cms.ueditor.upload.StorageManager;
+import com.jeecms.common.file.FileWrap;
 import com.jeecms.common.image.ImageScale;
 import com.jeecms.common.image.ImageUtils;
 import com.jeecms.common.ueditor.LocalizedMessages;
@@ -222,6 +225,10 @@ public class UeditorAct {
 	public State listFile (HttpServletRequest request,int index ) {
 		CmsSite site=CmsUtils.getSite(request);
 		String uploadPath=site.getUploadPath();
+		String path = request.getParameter("path");
+		if(StringUtils.isNotBlank(path)){
+			uploadPath = path;
+		}
 		File dir = new File(realPathResolver.get(uploadPath));
 		State state = null;
 		if ( !dir.exists() ) {
@@ -232,17 +239,19 @@ public class UeditorAct {
 			return new BaseState( false, AppInfo.NOT_DIRECTORY );
 		}
 		
-		Collection<File> list = FileUtils.listFiles( dir, null, true );
 		
-		if ( index < 0 || index > list.size() ) {
+//		Collection<File> list = FileUtils.listFiles( dir, null, true );
+		File[] listFiles = dir.listFiles();
+		
+		if ( index < 0 || index > listFiles.length) {
 			state = new MultiState( true );
 		} else {
-			Object[] fileList = Arrays.copyOfRange( list.toArray(), index, index + 20);
-			state = getState(realPathResolver.get(""),site.getContextPath(),fileList );
+//			Object[] fileList = Arrays.copyOfRange( listFiles.toArray(), index, index + 20);
+			state = getState(realPathResolver.get(""),site.getContextPath(),listFiles );
 		}
 		
 		state.putInfo( "start", index );
-		state.putInfo( "total", list.size() );
+		state.putInfo( "total", listFiles.length);
 		
 		return state;
 		
@@ -458,6 +467,8 @@ public class UeditorAct {
 	private DbFileMng dbFileMng;
 	private ImageScale imageScale;
 	private RealPathResolver realPathResolver;
+	private CmsResourceMng resourceMng;
+
 	@Autowired
 	private CmsUserMng cmsUserMng;
 	@Autowired
@@ -482,5 +493,11 @@ public class UeditorAct {
 	public void setRealPathResolver(RealPathResolver realPathResolver) {
 		this.realPathResolver = realPathResolver;
 	}
+	
+	@Autowired
+	public void setResourceMng(CmsResourceMng resourceMng) {
+		this.resourceMng = resourceMng;
+	}
+	
 
 }

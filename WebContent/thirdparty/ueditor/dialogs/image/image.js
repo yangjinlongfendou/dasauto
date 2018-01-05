@@ -825,14 +825,24 @@
             domUtils.on(this.container, 'click', function (e) {
                 var target = e.target || e.srcElement,
                     li = target.parentNode;
-
-                if (li.tagName.toLowerCase() == 'li') {
-                    if (domUtils.hasClass(li, 'selected')) {
-                        domUtils.removeClasses(li, 'selected');
-                    } else {
-                        domUtils.addClass(li, 'selected');
+                var $li = $(li);
+                var img = $li.find('img');
+                    imgSrc = img.prop('src');
+                    if("png|jpg|jpeg|gif|bmp".indexOf(filetype) == -1 ){
+                    	_this.listIndex = 0;
+                    	_this.path = '/u/cms/www/201607';
+                    	_this.listEnd = false;
+                    	_this.initContainer();
+                    	_this.getImageData();
+                    }else{
+                    	 if (li.tagName.toLowerCase() == 'li') {
+                             if (domUtils.hasClass(li, 'selected')) {
+                                 domUtils.removeClasses(li, 'selected');
+                             } else {
+                                 domUtils.addClass(li, 'selected');
+                             }
+                         }
                     }
-                }
             });
         },
         /* 初始化第一次的数据 */
@@ -865,12 +875,14 @@
                     'dataType': isJsonp ? 'jsonp':'',
                     'data': utils.extend({
                             start: this.listIndex,
-                            size: this.listSize
+                            size: this.listSize,
+                            path:this.path
                         }, editor.queryCommandValue('serverparam')),
                     'method': 'get',
                     'onsuccess': function (r) {
                         try {
                             var json = isJsonp ? r:eval('(' + r.responseText + ')');
+                            console.log(json.list);
                             if (json.state == 'SUCCESS') {
                                 _this.pushData(json.list);
                                 _this.listIndex = parseInt(json.start) + parseInt(json.list.length);
@@ -903,7 +915,7 @@
                 if(list[i] && list[i].url) {
                     item = document.createElement('li');
                     img = document.createElement('img');
-                    icon = document.createElement('span');
+                    icon = document.createElement('icon');
 
                     domUtils.on(img, 'load', (function(image){
                         return function(){
@@ -911,11 +923,16 @@
                         }
                     })(img));
                     img.width = 113;
-                    img.setAttribute('src', urlPrefix + list[i].url + (list[i].url.indexOf('?') == -1 ? '?noCache=':'&noCache=') + (+new Date()).toString(36) );
+                    filetype = list[i].url.substr(list[i].url.lastIndexOf('.') + 1);
+                    if("png|jpg|jpeg|gif|bmp".indexOf(filetype) == -1 ){
+                    	 img.setAttribute('src', 'http://localhost:8088/dascms/res/common/img/file/folder.gif');
+                    }else{
+                    	img.setAttribute('src', urlPrefix + list[i].url);
+                    }
                     //用于在线图片管理
                     img.setAttribute('_src', urlPrefix + list[i].url);
                     domUtils.addClass(icon, 'icon');
-
+                    
                     item.appendChild(img);
                     item.appendChild(icon);
                     this.list.insertBefore(item, this.clearFloat);

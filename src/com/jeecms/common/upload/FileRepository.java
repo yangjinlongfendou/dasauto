@@ -20,7 +20,7 @@ public class FileRepository implements ServletContextAware {
 	public String storeByExt(String path, String ext, MultipartFile file)
 			throws IOException {
 		String filename = UploadUtils.generateFilename(path, ext);
-		File dest = new File(getRealPath(filename));
+		File dest = new File(filename);
 		dest = UploadUtils.getUniqueFile(dest);
 		store(file, dest);
 		return filename;
